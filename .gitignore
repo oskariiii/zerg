@@ -3,3 +3,4 @@ composer.lock
 *.log
 LICENSE.txt
 runtime
+/application/database.php
