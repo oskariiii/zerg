@@ -30,3 +30,20 @@ function curl_get($url, &$httpCode = 0)
     curl_close($ch);
     return $file_contents;
 }
+
+/**
+ * 返回默认32或者定长的随机字符串
+ * @param int $length 随机字符串长度
+ * @return string $str 要返回的随机字符串
+ */
+function getRandChar($length = 32)
+{
+    $str    = null;
+    $strPol = "ABCDEFGHJKLMNPQRSTUVWXYZ1234567890abcdefghjklmnpqrstuvwxyz";
+    $max    = strlen($strPol) -1;
+    for($i=0; $i<$length; $i++)
+    {
+        $str .= $strPol[rand(0,$max)];
+    }
+    return $str;
+}
