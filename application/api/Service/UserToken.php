@@ -46,7 +46,7 @@ class UserToken extends Token
                 $this->processLoginError($wxReult);
             }else{
                 # 调取成功后 授权(颁发令牌)
-                $this->grantToken($wxReult);
+                return $this->grantToken($wxReult);
             }
         }
     }
