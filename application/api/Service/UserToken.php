@@ -10,8 +10,9 @@ namespace app\api\Service;
 
 use app\lib\exception\WeChatException;
 use think\Exception;
+use app\api\model\User as UserModel;
 
-class UserToken
+class UserToken extends Token
 {
     # 定义成员变量
     protected $code;
@@ -62,6 +63,15 @@ class UserToken
         # 返回令牌至客户端
 
         $openid = $wxReult['openid'];
+        $user = UserModel::getByOpenID($openid);
+        if($user){
+            $uid = $user->id;
+        }else{
+            $uid = $this->newUser($openid);
+        }
+        $cacheValue = $this->prepareCacheValue($wxReult,$uid);
+        $token = $this->saveToCache($cacheValue);
+        return $token;
     }
 
     /**
@@ -76,5 +86,48 @@ class UserToken
             'msg'       => $wxResult['errmsg'],
             'errcode'   => $wxResult['errcode']
         ]);
+    }
+
+    /**
+     * @param string $openid 微信服务器返回的openid字符串
+     * @return mixed 创建用户后, 返回信息ID
+     */
+    private function newUser($openid)
+    {
+        $user = UserModel::create(['openid'=>$openid]);
+        return $user->id;
+    }
+
+    /**
+     * @param array $wxResult 微信服务器返回的带有openid的数据
+     * @param string $uid   查询/创建用户返回的用户id
+     * @return array
+     */
+    private function prepareCacheValue($wxResult,$uid)
+    {
+        $cacheValue = $wxResult;
+        $cacheValue['uid']  = $uid;
+        $cacheValue['scope']    = 16; # 权限控制
+        return $cacheValue;
+    }
+
+    /**
+     * 存储用户uid以及openid等信息
+     * @param array $cacheValue
+     * @return boolean
+     */
+    private function saveToCache($cacheValue)
+    {
+        $key    = self::generateToken();
+        $value  = json_encode($cacheValue);
+        $expire_in = config('setting.token_expire_in'); # 获取设定的令牌(即缓存)的过期时间
+        $request = cache($key,$value,$expire_in); # TP5的内置缓存使用方法 cache(键,值,过期时间)
+        if(!$request){
+            throw new TokenException([
+                'msg'       => '服务器缓存异常',
+                'errorCode' => 10005
+            ]);
+        }
+        return $key;
     }
 }
