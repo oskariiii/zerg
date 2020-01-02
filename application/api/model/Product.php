@@ -19,6 +19,20 @@ class Product extends BaseModel
         return $this->prefixImgUrl($value,$date);
     }
 
+    /**
+     * 获取单个商品关联的详情图片 (一对多)
+     */
+    public function imgs()
+    {
+        return $this->hasMany('ProductImage','product_id','id');
+    }
+    /**
+     * 获取单个商品关联的参数 (一对多)
+     */
+    public function properties()
+    {
+        return $this->hasMany('ProductProperty','product_id','id');
+    }
     public static function getMostRent($count)
     {
         $products = self::limit($count)->order('create_time','DESC')->select(); # 这里的排序也可以写成  ( 'create_time DESC' )
@@ -33,5 +47,16 @@ class Product extends BaseModel
     {
         $products = self::where('category_id','=',$CategoryId)->select();
         return $products;
+    }
+
+    /**
+     * 获取商品详情
+     * @param $id int 传入的商品ID
+     * @return $result json 返回json格式信息详情
+     */
+    public static function getProductDetail($id)
+    {
+        $product = self::with('imgs,properties')->find($id);
+        return $product;
     }
 }
