@@ -12,81 +12,10 @@ use app\api\model\Product as ProductModel;
 class Product extends Controller
 {
     /**
-     * 显示资源列表
-     *
-     * @return \think\Response
+     * 获取最新商品
+     * @param $count int 获取最新商品数量
+     * @return $products json 返回json格式的数据
      */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * 显示创建资源表单页.
-     *
-     * @return \think\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * 保存新建的资源
-     *
-     * @param  \think\Request  $request
-     * @return \think\Response
-     */
-    public function save(Request $request)
-    {
-        //
-    }
-
-    /**
-     * 显示指定的资源
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function read($id)
-    {
-        //
-    }
-
-    /**
-     * 显示编辑资源表单页.
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * 保存更新的资源
-     *
-     * @param  \think\Request  $request
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * 删除指定资源
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function delete($id)
-    {
-        //
-    }
-
     public function getRecent($count = 10)
     {
         (new Count())->goCheck();
@@ -109,5 +38,22 @@ class Product extends Controller
             throw new ProductExceptioin();
         }
         return $products;
+    }
+
+    /**
+     * 获取某个商品的详情 包括参数以及多张图片
+     * @param $id int 传入的商品id
+     * @return $product json 返回的商品详情
+     */
+    public function getOne($id)
+    {
+        # 验证ID合法性, 正整数
+        (new IDMustBePostiveInt())->goCheck();
+        # 通过model获取商品详情
+        $product = ProductModel::getProductDetail($id);
+        if(!$product){
+            throw new ProductExceptioin();
+        }
+        return $product;
     }
 }
