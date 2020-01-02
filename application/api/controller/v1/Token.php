@@ -19,6 +19,6 @@ class Token
         # 服务层 UserToken 使用了构造函数赋值成员变量,所以这里传入$code参数
         $ut = new UserToken($code);
         $token = $ut->get();
-        return json($token);
+        return ['token' => $token];
     }
 }
