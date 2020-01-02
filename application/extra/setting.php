@@ -3,6 +3,6 @@
 # 自定义配置
 
 return [
-    # 设置前缀
-    'img_prefix'    => 'http://zerg.cn/images',
+    'img_prefix'            => 'http://zerg.cn/images', # 设置前缀
+    'token_expire_in'       => 7200, # 设定的令牌(即缓存)的过期时间
 ];
