@@ -66,4 +66,9 @@ class BaseValidate extends Validate
             return true;
         }
     }
+
+    protected function isMobile()
+    {
+
+    }
 }
