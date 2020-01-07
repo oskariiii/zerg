@@ -28,7 +28,7 @@ class Token
      * @param $key mixed 缓存中的键值
      * @return mixed 返回缓存中key对应的值
      */
-    public function getCurrentTokenVar($key)
+    public static function getCurrentTokenVar($key)
     {
         # 获取请求头部信息
         $token = Request::instance()->header('token');
@@ -41,7 +41,7 @@ class Token
             if(!is_array($vars)){
                 $vars = json_decode($vars,true);
             }
-            if(array_key_exists($vars,$key)){
+            if(array_key_exists($key,$vars)){
                 return $vars[$key];
             }else{
                 throw new Exception("尝试获取的Token变量并不存在!");
