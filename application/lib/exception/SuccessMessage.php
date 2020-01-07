@@ -4,7 +4,7 @@
 namespace app\lib\exception;
 
 
-class SuccessException extends BaseException
+class SuccessMessage extends BaseException
 {
     public $code        = 201;
     public $errorCode   = 0;
