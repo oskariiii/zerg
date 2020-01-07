@@ -67,8 +67,36 @@ class BaseValidate extends Validate
         }
     }
 
-    protected function isMobile()
+    protected function isMobile($value)
     {
+        # 定义正则表达式
+        $rule   = "^1(3|4|5|7|8)[0-9]\d{8}$^";
+        $result = preg_match($rule,$value);
+        if($result){
+            return true;
+        }else{
+            return false;
+        }
+    }
 
+    /**
+     * 根据验证器规则获取数据
+     * @param $arrays array 客户端传递进来的所有参数
+     * @return $newArray array 验证过滤后的数据
+     */
+    public function getDataByRule($arrays)
+    {
+        # 对参数进行过滤筛选
+        if(array_key_exists('user_id',$arrays)||array_key_exists('uid',$arrays)){
+            throw new ParameterException([
+                'msg'   => '参数中包含有非法参数名'
+            ]);
+        }
+        $newAarray = [];
+        # $this->rule 获取验证器规则
+        foreach ($this->rule as $k => $v ){
+            $newAarray[$k] = $arrays[$k];
+        }
+        return $newAarray;
     }
 }
