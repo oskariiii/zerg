@@ -56,4 +56,13 @@ class Product extends Controller
         }
         return $product;
     }
+
+    /**
+     * 删除一个商品接口
+     * @param $id int 被删除商品的ID.
+     */
+    public function deleteOne($id)
+    {
+        # 对用户判断身份(分组),判断权限是否可以使用该接口
+    }
 }
