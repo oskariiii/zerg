@@ -7,10 +7,42 @@ namespace app\api\controller\v1;
 use app\api\validate\AddressNew;
 use app\api\Service\Token as TokenService;
 use app\api\model\User as UserModel;
+use app\lib\enum\ScopeEnum;
 use app\lib\exception\SuccessMessage;
+use app\lib\exception\TokenException;
+use think\Controller;
+use app\lib\exception\ForbiddenException;
 
-class Address
+class Address extends Controller
 {
+    # tp5的前置操作 todo::将该方法提取到基类
+    protected $beforeActionList = [
+        # example
+        # 表示 second third 方法在执行前会执行first方法
+        # 'first' => ['only' => 'second,third']
+
+
+        'checkPrimaryScope' => ['only'=>'createOrUpdateAddress']
+    ];
+
+    /**
+     * 验证初级scope权限作用域
+     */
+    protected function checkPrimaryScope()
+    {
+        $scope = TokenService::getCurrentTokenVar('scope');
+        if(!$scope){
+            throw new TokenException();
+        }else{
+            if($scope >= ScopeEnum::User){
+                return true;
+            }else{
+                # 抛出异常, 终止流程
+                throw new ForbiddenException();
+            }
+        }
+    }
+
     /**
      * 创建或者更新用户地址(一对一)
      * @url zerg.cn/api/v1/address
