@@ -10,27 +10,18 @@ use app\api\model\User as UserModel;
 use app\lib\enum\ScopeEnum;
 use app\lib\exception\SuccessMessage;
 use app\lib\exception\TokenException;
-use think\Controller;
 use app\lib\exception\ForbiddenException;
 
-class Address extends Controller
+class Address extends BaseController
 {
-    # tp5的前置操作 todo::将该方法提取到基类
-    protected $beforeActionList = [
-        # example
-        # 表示 second third 方法在执行前会执行first方法
-        # 'first' => ['only' => 'second,third']
-
-
-        'checkPrimaryScope' => ['only'=>'createOrUpdateAddress']
-    ];
-
     /**
      * 验证初级scope权限作用域
      */
     protected function checkPrimaryScope()
     {
+        # 获取缓存中的token 权限
         $scope = TokenService::getCurrentTokenVar('scope');
+        # 权限处理
         if(!$scope){
             throw new TokenException();
         }else{
