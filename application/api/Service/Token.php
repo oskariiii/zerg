@@ -4,6 +4,9 @@
 namespace app\api\Service;
 
 
+use app\api\Service\Token as TokenService;
+use app\lib\enum\ScopeEnum;
+use app\lib\exception\ForbiddenException;
 use app\lib\exception\TokenException;
 use think\Cache;
 use think\Exception;
@@ -57,6 +60,48 @@ class Token
         # 获取缓存中的令牌, 通过令牌查询用户的uid
         $uid = self::getCurrentTokenVar('uid');
         return $uid;
+    }
+
+    /**
+     * 用户或者CMS都有访问权限
+     * @return bool
+     */
+    public static function needPrimaryScope()
+    {
+        # 获取缓存中的token 权限
+        $scope = self::getCurrentTokenVar('scope');
+        # 权限处理
+        if(!$scope){
+            throw new TokenException();
+        }else{
+            if($scope >= ScopeEnum::User){
+                return true;
+            }else{
+                # 抛出异常, 终止流程
+                throw new ForbiddenException();
+            }
+        }
+    }
+
+    /**
+     * 只有用户才能够访问
+     * @return bool
+     */
+    public static function needExclusiveScope()
+    {
+        # 获取缓存中的token 权限
+        $scope = TokenService::getCurrentTokenVar('scope');
+        # 权限处理
+        if(!$scope){
+            throw new TokenException();
+        }else{
+            if($scope == ScopeEnum::User){
+                return true;
+            }else{
+                # 抛出异常, 终止流程
+                throw new ForbiddenException();
+            }
+        }
     }
 
 }
