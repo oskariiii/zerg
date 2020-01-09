@@ -21,3 +21,6 @@ Route::post('api/:version/token/user','api/:version.Token/getToken');
 
 # 用户路由添加或修改
 Route::post('api/:version/address','api/:version.Address/createOrUpdateAddress');
+
+# 订单操作
+Route::post('api/:version/order','api/:version.Order/placeOrder');
