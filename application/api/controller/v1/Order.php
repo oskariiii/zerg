@@ -3,7 +3,7 @@
 
 namespace app\api\controller\v1;
 
-
+use app\api\controller\BaseController;
 class Order extends BaseController
 {
     # 1. 用户提交选择的商品后,向API提供所选择的产品的相关信息
@@ -14,6 +14,25 @@ class Order extends BaseController
     # 6. 调用微信支付接口进行支付
     # 7. 处理微信返回数据,根据数据进行判断支付状态是否成功.
     # 8. 成功 检测库存量 允许 库存量-1; 失败 返回失败结果
+
+    /**
+     * 发起订单前置操作
+     * 排除管理员, 只允许管理员以外的用户权限进行该接口访问
+     */
+    protected $beforeActionList = [
+        # example
+        # 表示 second third 方法在执行前会执行first方法
+        # 'first' => ['only' => 'second,third']
+        'checkExclusiveScope' => ['only'=>'placeOrder']
+    ];
+    /**
+     * 发起订单
+     * @url api/v1/order
+     */
+    public function placeOrder()
+    {
+        #
+    }
 
 
 }
