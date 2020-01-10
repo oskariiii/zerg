@@ -4,6 +4,8 @@
 namespace app\api\controller\v1;
 
 use app\api\controller\BaseController;
+use app\api\validate\OrderPlace;
+
 class Order extends BaseController
 {
     # 1. 用户提交选择的商品后,向API提供所选择的产品的相关信息
@@ -31,7 +33,8 @@ class Order extends BaseController
      */
     public function placeOrder()
     {
-        #
+        # 参数校验,定义接口获取参数变量
+        (new OrderPlace())->goCheck();
     }
 
 
