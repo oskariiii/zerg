@@ -4,6 +4,8 @@
 namespace app\api\Service;
 
 use app\api\model\Product;
+use app\api\model\UserAddress;
+use app\lib\exception\UserException;
 
 /**
  * Class Order 订单业务逻辑
@@ -50,7 +52,36 @@ class Order
             'totalCount'        => 0,   #
             'pStatus'           => [],  # 快照中单商品信息
             'snapAddress'       => '',  # 快照中的收货地址
+            'snapImg'           => '',  # 商品交易时的图片
         ];
+        $snap['orderPrice']     = $status['orderPrice'];
+        $snap['totalCount']     = $status['totalCount'];
+        $snap['pStatus']        = $status['pStatusArray'];
+        $snap['snapAddress']    = json_encode($this->getOrderStatus(),JSON_UNESCAPED_UNICODE);
+        # 将第一件产品作为缩略信息
+        $snap['snapName']       = $this->Products[0]['name'];
+        $snap['snapImg']        = $this->Products[0]['main_img_url'];
+        /*
+        if(count($this->Products) > 3 ){
+            $snap['snapName'] .= "等";
+        }
+        */
+        # 上述判断另外一种写法
+        $snap['snapName']       = count($this->Products) > 3 ? $snap['snapName'] .= "等" : $snap['snapName'];
+    }
+
+    /**
+     * 获取用户地址
+     * @param $userAddress object
+     * @return array
+     */
+    private function getUserAddress()
+    {
+        $userAddress = UserAddress::where('uid','=',$this->uid)->find(); # object
+        if(!$userAddress){
+            throw new UserException(['msg' => '用户收货地址不存在,订单创建失败!','errorCode' => 60001]);
+        }
+        return $userAddress->toArray();
     }
 
     public function getOrderStatus()
@@ -58,9 +89,9 @@ class Order
         $status = [
             'pass'          => true,
             'orderPrice'    => 0,
+            'totalCount'    => 0,
             'pStatusArray'  => [ # 保存所有商品信息.
-
-            ]
+            ],
         ];
         # 循环遍历做数据库库存量对比
         foreach ($this->oProducts as $oProduct){
@@ -69,6 +100,7 @@ class Order
                 $status['pass'] = false;
             }
             $status['orderPrice']   += $pStatus['totalPrice'];
+            $status['totalCount']   += $pStatus['count'];
             array_push($status['pStatusArray'],$pStatus);
         }
         return $status;
