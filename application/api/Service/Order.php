@@ -19,18 +19,101 @@ class Order
 
     /**
      * 下单
-     * @param $uid 用户id
+     * @param $uid       用户id
      * @param $oProducts 传入的商品信息
+     * @return array
      */
     public function place($uid,$oProducts)
     {
         # oProducts 与 products 做对比
         # products 从数据库中查询出来
         $this->oProducts = $oProducts;
-        $this->Products = ;
+        $this->Products = $this->getProductsByOrder($oProducts);
         $this->uid = $uid;
+        $status = $this->getOrderStatus();
+        if(!$status){
+            $status['order_id'] = -1;
+            return $status;
+        }
+        # 创建订单/快照
+        $orderSnap = $this->snapOrder($status);
+
     }
 
+    /**
+     * @param $status 生成订单快照所需要的订单信息
+     */
+    public function snapOrder($status)
+    {
+        $snap = [
+            'orderPrice'        => 0,   #
+            'totalCount'        => 0,   #
+            'pStatus'           => [],  # 快照中单商品信息
+            'snapAddress'       => '',  # 快照中的收货地址
+        ];
+    }
+
+    public function getOrderStatus()
+    {
+        $status = [
+            'pass'          => true,
+            'orderPrice'    => 0,
+            'pStatusArray'  => [ # 保存所有商品信息.
+
+            ]
+        ];
+        # 循环遍历做数据库库存量对比
+        foreach ($this->oProducts as $oProduct){
+            $pStatus = $this->getProductStatus($oProduct['product_id'],$oProduct['count'],$this->Products);
+            if(!$pStatus['haveStock']){
+                $status['pass'] = false;
+            }
+            $status['orderPrice']   += $pStatus['totalPrice'];
+            array_push($status['pStatusArray'],$pStatus);
+        }
+        return $status;
+    }
+
+    /**
+     * @param $oPID          订单中的某一商品id
+     * @param $oCount        当前订单某一物品的请求数量
+     * @param $products      实际库存量
+     * @return array
+     */
+    private function getProductStatus($oPID,$oCount,$products)
+    {
+        #  pStatus 保存订单里某一个商品的详细信息
+        $pStatus = [
+            'id'        => null,
+            'havsStock' => false,
+            'count'     => 0,
+            'name'      => '', # 商品名
+            'totalPrice'=> 0, # 某一类商品单价 x 该商品的购买的数量
+        ];
+        $pIndex = -1;
+        for($i=0;$i<count($products);$i++){
+            # 获取对应下标值
+            if($oPID == $products[$i]['id']){
+                $pIndex = $i;
+            }
+        }
+        if($pIndex == -1){
+            throw new OrderException([
+                'msg'   => 'ID为 '.$oPID.' 的商品不存在, 订单创建失败!'
+            ]);
+        }else{
+            $product = $products[$pIndex];
+            $pStatus['id']          = $product['id'];
+            $pStatus['name']        = $product['name'];
+            $pStatus['count']       = $oCount;
+            $pStatus['totalPrice']  = $product['price'] * $oCount;
+            if( $product['stock'] - $oCount >= 0 ){
+                $pStatus['havsStock']   = true;
+            }
+        }
+        return $pStatus;
+    }
+    
     /**
      * 根据订单查询数据库中对应的产品信息
      */
