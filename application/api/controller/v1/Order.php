@@ -6,6 +6,7 @@ namespace app\api\controller\v1;
 use app\api\controller\BaseController;
 use app\api\validate\OrderPlace;
 use app\api\Service\Token as TokenService;
+use app\api\Service\Order as OrderService;
 
 class Order extends BaseController
 {
@@ -40,6 +41,8 @@ class Order extends BaseController
         $products = input('post.products/a');
         # 获取用于uid
         $uid    = TokenService::getCurrentUid();
-
+        $order = new OrderService();
+        $status = $order->place($uid,$products);
+        return $status;
     }
 }
