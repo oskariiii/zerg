@@ -4,7 +4,7 @@
 namespace app\lib\exception;
 
 
-class OrderException
+class OrderException extends BaseException
 {
     public $code        = 404;
     public $errorCode   = 80000;
