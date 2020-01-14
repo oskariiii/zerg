@@ -37,17 +37,21 @@ class Order
         $this->Products = $this->getProductsByOrder($oProducts);
         $this->uid = $uid;
         $status = $this->getOrderStatus();
-        if(!$status){
+        if(!$status['pass']){
             $status['order_id'] = -1;
             return $status;
         }
         # 创建订单/快照
         $orderSnap = $this->snapOrder($status);
         # 生成订单,录入数据库.
+        $order = $this->createOrder($orderSnap);
+        $order['pass'] = true;
+        return $order;
     }
 
     /**
      * @param $snap 订单快照信息
+     * @return array
      */
     private function createOrder($snap)
     {
@@ -62,7 +66,7 @@ class Order
             $order->total_count = $snap['totalCount'];
             $order->snap_img = $snap['snapImg'];
             $order->snap_name = $snap['snapName'];
-            $order->snap_address = $snap['snapeAddress'];
+            $order->snap_address = $snap['snapAddress'];
             $order->snap_items = json_encode($snap['pStatus']);
             if(!$order->save()){
                 throw new OrderException(['msg' => '订单创建失败, 请重试!']);
@@ -91,11 +95,13 @@ class Order
     public static function makeOrderNo()
     {
         $yCode = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-        $orderSN = $yCode[intval(date("Y")) - 2020] . strtoupper(dechex(date("m"))).date("d") . substr(time() - 5) . substr(microtime(),2,5) . sprintf('%02d', rand(0, 99));
+        $orderSN = $yCode[intval(date("Y")) - 2020] . strtoupper(dechex(date("m"))).date("d") . substr(time(),-5) . substr(microtime(),2,5) . sprintf('%02d', rand(0, 99));
         return $orderSN;
     }
+
     /**
      * @param $status 生成订单快照所需要的订单信息
+     * @return array
      */
     public function snapOrder($status)
     {
@@ -120,6 +126,7 @@ class Order
         */
         # 上述判断另外一种写法
         $snap['snapName']       = count($this->Products) > 3 ? $snap['snapName'] .= "等" : $snap['snapName'];
+        return $snap;
     }
 
     /**
@@ -169,7 +176,7 @@ class Order
         #  pStatus 保存订单里某一个商品的详细信息
         $pStatus = [
             'id'        => null,
-            'havsStock' => false,
+            'haveStock' => false,
             'count'     => 0,
             'name'      => '', # 商品名
             'totalPrice'=> 0, # 某一类商品单价 x 该商品的购买的数量
@@ -192,7 +199,7 @@ class Order
             $pStatus['count']       = $oCount;
             $pStatus['totalPrice']  = $product['price'] * $oCount;
             if( $product['stock'] - $oCount >= 0 ){
-                $pStatus['havsStock']   = true;
+                $pStatus['haveStock']   = true;
             }
         }
         return $pStatus;
@@ -209,7 +216,7 @@ class Order
             array_push($oPIDS, $value['product_id']);
         }
         $products = Product::all($oPIDS)
-                ->visible(['id','price','stock','name','main_img_url'])
+                # ->visible(['id','price','stock','name','main_img_url'])
                 ->toArray();
         return $products;
     }
