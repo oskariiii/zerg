@@ -30,6 +30,7 @@ class OrderPlace extends BaseValidate
         foreach($values as $value){
             $this->checkProduct($value);
         }
+        return true;
     }
 
     protected function checkProduct($value)
@@ -37,7 +38,7 @@ class OrderPlace extends BaseValidate
         # 手动调用自定义验证规则
         $validate   = new BaseValidate($this->singleRule);
         $result     = $validate->check($value);
-        if($result){
+        if(!$result){
             throw new ParameterException(['msg'=>'商品参数错误']);
         }
     }
