@@ -3,9 +3,13 @@
 
 namespace app\api\Service;
 
+use app\api\model\OrderProduct;
 use app\api\model\Product;
+use app\api\model\Order as OrderModel;
 use app\api\model\UserAddress;
 use app\lib\exception\UserException;
+use app\lib\exception\OrderException;
+use think\Exception;
 
 /**
  * Class Order 订单业务逻辑
@@ -39,9 +43,57 @@ class Order
         }
         # 创建订单/快照
         $orderSnap = $this->snapOrder($status);
-
+        # 生成订单,录入数据库.
     }
 
+    /**
+     * @param $snap 订单快照信息
+     */
+    private function createOrder($snap)
+    {
+        try{
+            # 生成订单号
+            $orderNo = $this->makeOrderNo();
+            $order = new OrderModel();
+            # 订单参数赋值
+            $order->user_id = $this->uid;
+            $order->order_no = $orderNo;
+            $order->total_price = $snap['orderPrice'];
+            $order->total_count = $snap['totalCount'];
+            $order->snap_img = $snap['snapImg'];
+            $order->snap_name = $snap['snapName'];
+            $order->snap_address = $snap['snapeAddress'];
+            $order->snap_items = json_encode($snap['pStatus']);
+            if(!$order->save()){
+                throw new OrderException(['msg' => '订单创建失败, 请重试!']);
+            }
+            $orderID= $order->id;
+            $create_time = $order->create_time;
+            # 使用 & 引用符号, 修改数组内的值
+            foreach ($this->oProducts as &$p)
+            {
+                # 订单生成后, 将快照信息内的订单号修改为生成订单的订单号
+                $p['order_id']  = $orderID;
+            }
+            $orderProduct = new OrderProduct();
+            $orderProduct->saveAll($this->oProducts); # 这里调用saveALL方法是因为 $this->oProducts 为数组, 多组数据
+            return [
+                'order_no'      => $orderNo,
+                'order_id'      => $orderID,
+                'create_time'   => $create_time,
+            ];
+        }catch (Exception $ex)
+        {
+            throw $ex;
+        }
+    }
+
+    public static function makeOrderNo()
+    {
+        $yCode = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+        $orderSN = $yCode[intval(date("Y")) - 2020] . strtoupper(dechex(date("m"))).date("d") . substr(time() - 5) . substr(microtime(),2,5) . sprintf('%02d', rand(0, 99));
+        return $orderSN;
+    }
     /**
      * @param $status 生成订单快照所需要的订单信息
      */
