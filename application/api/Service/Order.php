@@ -10,6 +10,7 @@ use app\api\model\UserAddress;
 use app\lib\exception\UserException;
 use app\lib\exception\OrderException;
 use think\Exception;
+use think\Db;
 
 /**
  * Class Order 订单业务逻辑
@@ -55,6 +56,8 @@ class Order
      */
     private function createOrder($snap)
     {
+        # 开启事务,操作完成提交事务操作; 操作失败, 使用rollback回滚操作
+        Db::startTrans();
         try{
             # 生成订单号
             $orderNo = $this->makeOrderNo();
@@ -81,6 +84,9 @@ class Order
             }
             $orderProduct = new OrderProduct();
             $orderProduct->saveAll($this->oProducts); # 这里调用saveALL方法是因为 $this->oProducts 为数组, 多组数据
+
+            # 结束事务
+            Db::commit();
             return [
                 'order_no'      => $orderNo,
                 'order_id'      => $orderID,
@@ -88,6 +94,8 @@ class Order
             ];
         }catch (Exception $ex)
         {
+            # 回滚
+            Db::rollback();
             throw $ex;
         }
     }
