@@ -224,7 +224,7 @@ class Order
             array_push($oPIDS, $value['product_id']);
         }
         $products = Product::all($oPIDS)
-                # ->visible(['id','price','stock','name','main_img_url'])
+                # ->visible(['id','price','stock','name','main_img_url']) # visible 获取想要展示的字段信息
                 ->toArray();
         return $products;
     }
